@@ -13,3 +13,6 @@ price <- xpathSApply(doc_parsed, "//div/p[@class = 'listing-result__price']", xm
 link <- xpathSApply(doc_parsed, "//div/link[@itemprop='url']", xmlGetAttr, "href")
 address <- xpathSApply(doc_parsed, "//div/a/h2/span[@class = 'address-line1']", xmlValue)
 suburb <- xpathSApply(doc_parsed, "//div/a/h2/span/span[@itemprop='addressLocality']", xmlValue)
+beds <- xpathSApply(doc_parsed, "//div/span[@class='property-feature__feature'][1]", xmlValue)
+baths <- xpathSApply(doc_parsed, "//div/span[@class='property-feature__feature'][2]", xmlValue)
+parking <- str_replace(xpathSApply(doc_parsed, "//div/span[@class='property-feature__feature'][3]", xmlValue),"− ", "")
