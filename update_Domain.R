@@ -4,6 +4,7 @@ library(rvest)
 library(stringr)
 library(lubridate)
 library(googledrive)
+library(googlesheets)
 
 #URL inicial a buscar
 #url <- "https://www.domain.com.au/rent/?suburb=caulfield-vic-3162,south-yarra-vic-3141,windsor-vic-3181,st-kilda-east-vic-3183,caulfield-north-vic-3161,prahran-vic-3181,prahran-east-vic-3181,toorak-vic-3142,elsternwick-vic-3185,balaclava-vic-3183,armadale-vic-3143,elwood-vic-3184,st-kilda-vic-3182&bedrooms=2&price=0-400&ssubs=1"
@@ -29,7 +30,7 @@ url <- paste0(url, "&page=", num_pages)
 rm(doc, doc_parsed, num_pages, pages, results)
 
 #Extracción de datos
-dataset <- map(url, function(url){
+updated_data <- map(url, function(url){
   #Leer documento html
   doc <- read_html(url)
   doc_parsed <- htmlParse(doc)
@@ -56,11 +57,8 @@ dataset <- map(url, function(url){
                  Link = link)
 })
 
-#Generación de data frame
-dataset <- bind_rows(dataset) %>% mutate(DateGathered = today(), Status = "Valid")
+#Data frame con data actualizada
+updated_data <- bind_rows(dataset)
 
-#Subir dataset creado a google drive
-tmp <- tempfile(fileext = ".csv")
-write_csv(dataset, path = tmp)
-drive_upload(tmp, path = as_id("1baCzvRlccVIjazbLLl8HF5i4T7lOZuEN?ogsrc=32"), type = "spreadsheet", name = "DomainHousing")
-
+#Descarga de data en gogle drive
+drive_find(pattern = "DomainHousing", type = "spreadsheet")
