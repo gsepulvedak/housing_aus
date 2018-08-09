@@ -39,7 +39,8 @@ updated_data <- map(url, function(url){
   price <- xpathSApply(doc_parsed, "//div/p[@class = 'listing-result__price']", xmlValue) %>% 
     str_replace_all(., "[aA-zA]", "") %>% 
     str_trim() %>% 
-    str_replace_all(., "\\$", "")
+    str_replace_all(., "\\$", "") %>% 
+    str_replace_all(., "\\..+", "")
   link <- xpathSApply(doc_parsed, "//div/link[@itemprop='url']", xmlGetAttr, "href")
   address <- xpathSApply(doc_parsed, "//div/a/h2/span[@class = 'address-line1']", xmlValue)
   suburb <- xpathSApply(doc_parsed, "//div/a/h2/span/span[@itemprop='addressLocality']", xmlValue)
@@ -58,7 +59,13 @@ updated_data <- map(url, function(url){
 })
 
 #Data frame con data actualizada
-updated_data <- bind_rows(dataset)
+updated_data <- bind_rows(updated_data)
 
-#Descarga de data en gogle drive
-drive_find(pattern = "DomainHousing", type = "spreadsheet")
+#Descarga de data en gogle drive y replicar para comparación
+old_data <- gs_title("DomainHousing") %>% gs_read(col_types = "cccccccDc")
+old_data_rep <- old_data %>% select(-Date, -Status)
+
+#Identificación de registros no vigentes y actualización
+dplyr::setdiff(old_data_rep, updated_data) #inciertos
+dplyr::setdiff(updated_data, old_data_rep) #nuevos
+
