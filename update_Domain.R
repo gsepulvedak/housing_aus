@@ -62,13 +62,14 @@ updated_data <- map(url, function(url){
 updated_data <- bind_rows(updated_data)
 
 #Descarga de data en gogle drive y replicar para comparación
-old_data <- gs_title("DomainHousing") %>% gs_read(col_types = "cccccccDc")
-old_data_rep <- old_data %>% select(-Date, -Status)
+old_data <- gs_title("DomainHousing") %>% gs_read(col_types = "cccccccDc") 
 
 #Identificación de registros no vigentes y actualización
-Incierto <- dplyr::setdiff(old_data_rep, updated_data) %>% mutate(Date = today(), Status = "Incierto")
-old_data <- old_data %>% anti_join(Incierto, by = "Address") %>% bind_rows(Incierto)
+Incierto <- dplyr::setdiff(old_data$Link, updated_data$Link)
+old_data <- old_data %>% select(-Status) %>% mutate(Status = ifelse(.$Link %in% Incierto, "Incierto", "Valid"))
+rm(Incierto)
 
-dplyr::setdiff(updated_data, old_data_rep) #nuevos
-
-old_data$Status <- case_when(old_data$Link == dplyr::setdiff(old_data_rep, updated_data)$Link ~ "Incierto") 
+#Identificación de registros nuevos y adición en dataset
+old_data_tmp <- old_data %>% select(-Date, -Status)
+new_rows <- dplyr::setdiff(updated_data, old_data_tmp) %>% mutate(Date = today(), Status = "Valid")
+new_data <- bind_rows(old_data, new_rows)
